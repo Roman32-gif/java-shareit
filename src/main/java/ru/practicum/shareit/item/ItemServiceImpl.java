@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.ForbiddenException;
 import ru.practicum.shareit.exceptions.NotFoundException;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ItemServiceImpl implements ItemService {
 
     private final ItemStorage itemStorage;
@@ -28,12 +30,14 @@ public class ItemServiceImpl implements ItemService {
         User owner = getUserOrThrow(userId);
         item.setOwner(owner);
         Item newItem = itemStorage.create(item);
+        log.info("Добавлена новая вещь с id {} пользователем с id {}", newItem.getId(), userId);
         return ItemMapper.toItemDto(newItem);
     }
 
     @Override
     public List<ItemDto> getAllItemsByUserId(Long userId) {
         getUserOrThrow(userId);
+        log.debug("Получение всех вещей пользователя с id {}", userId);
         return itemStorage.getAllItemsByUserId(userId).stream()
                 .map(ItemMapper::toItemDto)
                 .toList();
@@ -41,6 +45,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getItemById(Long id) {
+        log.debug("Получение вещи с id {}", id);
         return ItemMapper.toItemDto(getItemOrThrow(id));
     }
 
@@ -68,6 +73,7 @@ public class ItemServiceImpl implements ItemService {
             item.setAvailable(itemDto.getAvailable());
         }
         Item updatedItem = itemStorage.update(item);
+        log.info("Вещь с id {} обновлена пользователем с id {}", updatedItem.getId(), userId);
         return ItemMapper.toItemDto(updatedItem);
     }
 
@@ -76,6 +82,7 @@ public class ItemServiceImpl implements ItemService {
         if (text == null || text.isBlank()) {
             return List.of();
         }
+        log.debug("Поиск вещей по тексту: {}", text);
         return itemStorage.searchForItems(text).stream()
                 .map(ItemMapper::toItemDto)
                 .toList();

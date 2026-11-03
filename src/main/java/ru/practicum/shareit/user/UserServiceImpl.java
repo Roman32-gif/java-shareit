@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.AlreadyExistsException;
 import ru.practicum.shareit.exceptions.NotFoundException;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserStorage userStorage;
@@ -23,16 +25,19 @@ public class UserServiceImpl implements UserService {
         }
         checkEmail(userDto.getEmail(),null);
         User user = userStorage.createUser(UserMapper.toUser(userDto));
+        log.info("Пользователь с id {} успешно создан", user.getId());
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto getUser(Long id) {
+        log.debug("Получение пользователя с id {}", id);
         return UserMapper.toUserDto(getUserOrThrow(id));
     }
 
     @Override
     public List<UserDto> getAllUsers() {
+        log.debug("Получение всех пользователей");
         return userStorage.getUsers().stream()
                 .map(UserMapper::toUserDto)
                 .toList();
@@ -57,6 +62,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User updated = userStorage.updateUser(user);
+        log.info("Пользователь с id {} успешно обновлен", updated.getId());
         return UserMapper.toUserDto(updated);
     }
 
@@ -64,6 +70,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long id) {
         getUserOrThrow(id);
         userStorage.deleteUser(id);
+        log.info("Пользователь с id {} успешно удален", id);
     }
 
     private User getUserOrThrow(Long id) {
