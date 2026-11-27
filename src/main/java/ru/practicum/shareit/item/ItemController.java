@@ -55,5 +55,4 @@ public class ItemController {
                                  @Valid @RequestBody CommentDto commentDto) {
         return itemService.addComment(itemId, userId, commentDto);
     }
-
 }
