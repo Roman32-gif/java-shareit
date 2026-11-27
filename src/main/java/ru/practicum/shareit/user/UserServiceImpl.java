@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
     public UserDto addUser(UserDto userDto) {
@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Введены некорректные данные");
         }
         checkEmail(userDto.getEmail(),null);
-        User user = userStorage.createUser(UserMapper.toUser(userDto));
+        User user = userRepository.save(UserMapper.toUser(userDto));
         log.info("Пользователь с id {} успешно создан", user.getId());
         return UserMapper.toUserDto(user);
     }
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> getAllUsers() {
         log.debug("Получение всех пользователей");
-        return userStorage.getUsers().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .toList();
     }
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
             user.setEmail(userDto.getEmail());
         }
 
-        User updated = userStorage.updateUser(user);
+        User updated = userRepository.save(user);
         log.info("Пользователь с id {} успешно обновлен", updated.getId());
         return UserMapper.toUserDto(updated);
     }
@@ -69,17 +69,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         getUserOrThrow(id);
-        userStorage.deleteUser(id);
+        userRepository.deleteById(id);
         log.info("Пользователь с id {} успешно удален", id);
     }
 
     private User getUserOrThrow(Long id) {
-        return userStorage.findUserById(id)
+        return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + id + " не найден"));
     }
 
     private void checkEmail(String email, Long userId) {
-        userStorage.findUserByEmail(email)
+        userRepository.findByEmailIgnoreCase(email)
                 .filter(f -> !f.getId().equals(userId))
                 .ifPresent(f -> {
                     throw new AlreadyExistsException("Пользователь с такой почтой уже существует");
